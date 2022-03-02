@@ -63,6 +63,13 @@ compile:
 	go build -mod=readonly -o ./bin/ratelimit_client $(MODULE)/src/client_cmd
 	go build -mod=readonly -o ./bin/ratelimit_config_check $(MODULE)/src/config_check_cmd
 
+.PHONY: compile_arm
+compile_arm: 
+	mkdir -p ./bin/arm
+	GOOS=linux GOARCH=arm64 go build -mod=readonly -o ./bin/arm/ratelimit $(MODULE)/src/service_cmd
+	GOOS=linux GOARCH=arm64 go build -mod=readonly -o ./bin/arm/ratelimit_client $(MODULE)/src/client_cmd
+	GOOS=linux GOARCH=arm64 go build -mod=readonly -o ./bin/arm/ratelimit_config_check $(MODULE)/src/config_check_cmd
+
 .PHONY: tests_unit
 tests_unit: compile
 	go test -race $(MODULE)/...
@@ -113,6 +120,10 @@ docker_image: docker_tests
 .PHONY: docker_push
 docker_push: docker_image
 	docker push $(IMAGE):$(VERSION)
+
+.PHONY: docker_multi
+docker_multi: 
+	docker buildx build --platform linux/arm64,linux/amd64 -t a2659802/$(IMAGE):$(VERSION) . --push
 
 .PHONY: integration_tests
 integration_tests:
